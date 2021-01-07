@@ -21,44 +21,44 @@ outputs:
 runs:
   using: "composite"
   steps: 
-  - name: Azure Login
-    uses: Azure/login@v1.1
-    with:
-      creds: ${{ inputs.creds }}
-  - id: upgrade-nodepool-image
-    name: Upgrade node images
-    uses: Azure/cli@v1.0.3
-    with:
-      inlineScript: |
-        # Add aks-preview Extension
-        az extension add --name aks-preview        
-        az extension update --name aks-preview
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{ inputs.creds }}
+    - id: upgrade-nodepool-image
+      name: Upgrade node images
+      uses: Azure/cli@v1.0.3
+      with:
+        inlineScript: |
+          # Add aks-preview Extension
+          az extension add --name aks-preview        
+          az extension update --name aks-preview
 
-        RG=${{ inputs.rg }}
-        CLUSTER=${{ inputs.cluster }}
-#        lst=()        
+          RG=${{ inputs.rg }}
+          CLUSTER=${{ inputs.cluster }}
+  #        lst=()        
 
-        # Get Latest Available And Current Node Pool Image Version
-        az aks nodepool list --resource-group $RG --cluster-name $CLUSTER --query [].name \
-        | jq -c '.[]' | tr -d "\"\t\r" \
-        | while read NODEPOOL; \
-          do \
-          echo 'Nodepool => '$NODEPOOL; \
-          #echo "az aks nodepool get-upgrades --nodepool-name ${NODEPOOL} --cluster-name ${CLUSTER} --resource-group ${RG} --query latestNodeImageVersion"
-          lnpv=$(az aks nodepool get-upgrades --nodepool-name ${NODEPOOL} --cluster-name ${CLUSTER} --resource-group ${RG} --query latestNodeImageVersion); \
-          #echo "az aks nodepool show --resource-group ${RG} --cluster-name ${CLUSTER} --name ${NODEPOOL} --query nodeImageVersion"
-          cnpv=$(az aks nodepool show --resource-group ${RG} --cluster-name ${CLUSTER} --name ${NODEPOOL} --query nodeImageVersion); \
-          echo 'Latest Available Node Image Version => ' $lnpv; \
-          echo 'Current Node Image Version =>' $cnpv; \
-#          lst+=("${NODEPOOL} | ${cnpv} | ${lnpv}") \
-        done;
-#        OUT=$(sed -E 's/^| /&-/g' <<<"$lst")
-#        echo "::set-output name=nodepools-versions::$(echo $OUT)"
+          # Get Latest Available And Current Node Pool Image Version
+          az aks nodepool list --resource-group $RG --cluster-name $CLUSTER --query [].name \
+          | jq -c '.[]' | tr -d "\"\t\r" \
+          | while read NODEPOOL; \
+            do \
+            echo 'Nodepool => '$NODEPOOL; \
+            #echo "az aks nodepool get-upgrades --nodepool-name ${NODEPOOL} --cluster-name ${CLUSTER} --resource-group ${RG} --query latestNodeImageVersion"
+            lnpv=$(az aks nodepool get-upgrades --nodepool-name ${NODEPOOL} --cluster-name ${CLUSTER} --resource-group ${RG} --query latestNodeImageVersion); \
+            #echo "az aks nodepool show --resource-group ${RG} --cluster-name ${CLUSTER} --name ${NODEPOOL} --query nodeImageVersion"
+            cnpv=$(az aks nodepool show --resource-group ${RG} --cluster-name ${CLUSTER} --name ${NODEPOOL} --query nodeImageVersion); \
+            echo 'Latest Available Node Image Version => ' $lnpv; \
+            echo 'Current Node Image Version =>' $cnpv; \
+  #          lst+=("${NODEPOOL} | ${cnpv} | ${lnpv}") \
+          done;
+  #        OUT=$(sed -E 's/^| /&-/g' <<<"$lst")
+  #        echo "::set-output name=nodepools-versions::$(echo $OUT)"
 
-        # Upgrade Node Image Only
-        echo 'Upgrading Node Images'
-        az aks upgrade --resource-group $RG --name $CLUSTER --node-image-only --yes
-    - id: random-number-generator
-      name: random-number-generator
-      run: echo "::set-output name=random-id::$(echo $RANDOM)"
-      shell: bash
+          # Upgrade Node Image Only
+          echo 'Upgrading Node Images'
+          az aks upgrade --resource-group $RG --name $CLUSTER --node-image-only --yes
+      - id: random-number-generator
+        name: random-number-generator
+        run: echo "::set-output name=random-id::$(echo $RANDOM)"
+        shell: bash
